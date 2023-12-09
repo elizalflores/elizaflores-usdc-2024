@@ -15,17 +15,46 @@
 /**
  * Searches for matches in scanned text.
  * @param {string} searchTerm - The word or term we're searching for. 
- * @param {JSON} scannedTextObj - A JSON object representing the scanned text.
+ * @param {JSON} listOfBooks - A JSON object representing the scanned text.
  * @returns {JSON} - Search results.
  * */ 
- function findSearchTermInBooks(searchTerm, scannedTextObj) {
+ function findSearchTermInBooks(searchTerm, listOfBooks) {
     /** You will need to implement your search and 
      * return the appropriate object here. */
 
-    var result = {
+    /** Changed data type from var to const */
+    const result = {
         "SearchTerm": "",
         "Results": []
     };
+    /** Book object for Results array */
+    const bookResult = {
+        "ISBN": "",
+        "Page": 0,
+        "Line": 0
+    }
+    /** Regular expression for creating word array */
+    const separators = new RegExp("[\\s,.;]+");
+
+    listOfBooks.forEach((book) => {
+        book.Content.forEach((page) => {
+            const wordsFromText = page.Text.split(separators);
+            for (const word of wordsFromText) {
+                /** Use strict equality for accuracy */
+                if (searchTerm === word) {
+                    /** Create bookResult object and store data 
+                     * into results object */
+                    let matching = {...bookResult}
+                    matching.ISBN = book.ISBN;
+                    matching.Page = page.Page;
+                    matching.Line = page.Line;
+
+                    result.SearchTerm = searchTerm;
+                    result.Results.push(matching);
+                }
+            }
+        })
+    })
     
     return result; 
 }
