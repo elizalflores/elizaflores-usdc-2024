@@ -17,10 +17,11 @@
  * @param {string} searchTerm - The word or term we're searching for. 
  * @param {JSON} listOfBooks - A JSON object representing the scanned text.
  * @returns {JSON} - Search results.
- * */ 
- function findSearchTermInBooks(searchTerm, listOfBooks) {
-    /** You will need to implement your search and 
-     * return the appropriate object here. */
+ * */
+function findSearchTermInBooks(searchTerm, listOfBooks) {
+    if (searchTerm === null || searchTerm === "") { 
+        return "Please enter word or term to search for";
+    }
 
     /** Changed data type from var to const */
     const result = {
@@ -33,8 +34,10 @@
         "Page": 0,
         "Line": 0
     }
-    /** Regular expression for creating word array */
-    const separators = new RegExp("[\\s,.;]+");
+   
+    const separators = new RegExp("[\\s\\(\),.;]+");
+    searchTerm = String(searchTerm)
+    result.SearchTerm = searchTerm;
 
     listOfBooks.forEach((book) => {
         book.Content.forEach((page) => {
@@ -44,19 +47,17 @@
                 if (searchTerm === word) {
                     /** Create bookResult object and store data 
                      * into results object */
-                    let matching = {...bookResult}
+                    let matching = { ...bookResult }
                     matching.ISBN = book.ISBN;
                     matching.Page = page.Page;
                     matching.Line = page.Line;
-
-                    result.SearchTerm = searchTerm;
                     result.Results.push(matching);
                 }
             }
         })
     })
-    
-    return result; 
+
+    return result;
 }
 
 /** Example input object. */
@@ -79,11 +80,11 @@ const twentyLeaguesIn = [
                 "Page": 31,
                 "Line": 10,
                 "Text": "eyes were, I asked myself how he had managed to see, and"
-            } 
-        ] 
+            }
+        ]
     }
 ]
-    
+
 /** Example output object */
 const twentyLeaguesOut = {
     "SearchTerm": "the",
@@ -123,11 +124,154 @@ if (JSON.stringify(twentyLeaguesOut) === JSON.stringify(test1result)) {
 }
 
 /** We could choose to check that we get the right number of results. */
-const test2result = findSearchTermInBooks("the", twentyLeaguesIn); 
+const test2result = findSearchTermInBooks("the", twentyLeaguesIn);
 if (test2result.Results.length == 1) {
     console.log("PASS: Test 2");
 } else {
     console.log("FAIL: Test 2");
     console.log("Expected:", twentyLeaguesOut.Results.length);
     console.log("Received:", test2result.Results.length);
+}
+
+/** ADDITIONAL UNIT TESTS */
+/** INPUT OBJECTS */
+const threeBooks = [
+    {
+        "Title": "The Enchanted Quest",
+        "ISBN": "9781234567890",
+        "Content": [
+            {
+                "Page": 1,
+                "Line": 1,
+                "Text": "In a land of mythical creatures and ancient wonders..."
+            },
+            {
+                "Page": 1,
+                "Line": 2,
+                "Text": "Follow the journey of a young adventurer on the Enchanted Quest."
+            },
+        ]
+    },
+    {
+        "Title": "Symphony of Sounds: Exploring Onomatopoeias",
+        "ISBN": "9782345678901",
+        "Content": [
+            {
+                "Page": 50,
+                "Line": 34,
+                "Text": "that bring the world to life. Explore the pitter-patter of rain, the chirpi-"
+            },
+            {
+                "Page": 50,
+                "Line": 35,
+                "Text": "ng of birds, and the hiss of a snake through vibrant and immersive storytelli-"
+            },
+        ]
+    },
+    {
+        "Title": "Greek Mythology",
+        "ISBN": "9783456789012",
+        "Content": [
+            {
+                "Page": 10,
+                "Line": 14,
+                "Text": "Encounter the 3 enigmatic figures of Mount Olympus, where Zeus (Ζεῦς), Hera (Ἥρα), and"
+            },
+            {
+                "Page": 10,
+                "Line": 15,
+                "Text": "Poseidon (Ποσειδῶν) reign. Heroes like Odysseus (Ὀδυσσεὺς), are"
+            },
+        ]
+    }
+]
+
+const caseSensitiveBooks = [
+    {
+        "Title": "A Journey in Time",
+        "ISBN": "9784567890123",
+        "Content": [
+            {
+                "Page": 6,
+                "Line": 19,
+                "Text": "journey in time, where the past and present intertwine in mysterious ways."
+            }
+        ]
+    },
+    {
+        "Title": "Zombie Apocalypse",
+        "ISBN": "9785678901234",
+        "Content": [
+            {
+                "Page": 90,
+                "Line": 26,
+                "Text": "\"GET IN HERE!\" the man yelled. He held the door open just enough for a person to"
+            }
+        ]
+    },
+    {
+        "Title": "Wind Whispers",
+        "ISBN": "9786789012345",
+        "Content": [
+            {
+                "Page": 35,
+                "Line": 7,
+                "Text": "In the wind, it is said that you can hear the secrets and tales of ancient civilizations"
+            }
+        ]
+    }
+]
+
+/** POSITIVE TESTS */
+/** TEST 3: Search through multiple books for one word, multiple results */
+/** This returns the same line twice, as the Text contains "in" 2 times in the string.
+ * This led to an edge case I did not initially consider.
+ */
+const testPositiveMatch1 = findSearchTermInBooks("in", caseSensitiveBooks);
+if (testPositiveMatch1.Results.length === 2) {
+    console.log("PASS: Test 3 - testPositiveMatch1");
+} else {
+    console.log("FAIL: Test 3 - testPositiveMatch1");
+    console.log("Expected:", 2);
+    console.log("Received:", testPositiveMatch1.Results.length);
+}
+
+/** TEST 4: Search with a non-string type, a number (int) */
+/** This led to an edge case I did not consider and promptly fixed my code. It now 
+ * correctly searches for numbers as the search term/word. Originally written as a negative test.
+ */
+const testPositiveMatch2 = findSearchTermInBooks(3, threeBooks);
+if (testPositiveMatch2.Results.length === 1) {
+    console.log("PASS: Test 4 - testPositiveMatch2");
+} else {
+    console.log("FAIL: Test 4 - testPositiveMatch2");
+    console.log("Expected:", 1);
+    console.log("Received:", testPositiveMatch2.Results.length);
+}
+
+/** NEGATIVE TESTS */
+/** TEST 5: Search with an empty string */
+const testNegativeMatch1 = findSearchTermInBooks("", threeBooks)
+if (typeof(testNegativeMatch1) === 'string') {
+    console.log("PASS: Test 5 - testNegativeMatch1");
+} else {
+    console.log("FAIL: Test 5 - testNegativeMatch1");
+    console.log("Expected:", 'string');
+    console.log("Received:", typeof(testNegativeMatch1));
+}
+
+/** CASE-SENSITVE TESTS */
+/** TEST 6: Search for case-sensitivity for the word "in" */
+const cases = ["In", "iN", "IN"]; // "in" tested in Positive Tests
+let count = 0;
+for (const word of cases) {
+    let testCaseSensitive = findSearchTermInBooks(word, caseSensitiveBooks);
+    if (testCaseSensitive.Results.length === 1) count += 1;
+}
+if (count === 2) {
+    console.log("PASS: Test 6 - testCaseSensitive");
+} else {
+    console.log("FAIL: Test 6 - testCaseSensitive");
+    console.log("Expected:", 2);
+    console.log("Received:", count);
 }
